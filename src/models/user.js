@@ -1,7 +1,9 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose')
+const validator = require('validator')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+const Task = require('./task')
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -15,18 +17,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     validate: value => {
       if (!validator.isEmail(value)) {
-        throw new Error("Email is invalid");
+        throw new Error('Email is invalid')
       }
     }
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
+    required: [true, 'Password is required'],
     minlength: 7,
     trim: true,
     validate: value => {
-      if (value.toLowerCase().includes("password")) {
-        throw new Error("Passwords cannot contain the word 'password'");
+      if (value.toLowerCase().includes('password')) {
+        throw new Error("Passwords cannot contain the word 'password'")
       }
     }
   },
@@ -34,7 +36,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     validate: value => {
       if (value < 0) {
-        throw new Error("Age must be a positive number");
+        throw new Error('Age must be a positive number')
       }
     }
   },
@@ -46,46 +48,70 @@ const userSchema = new mongoose.Schema({
       }
     }
   ]
-});
+})
 
 // accessible on the User instances
 userSchema.methods.generateAuthToken = async function() {
-  const user = this;
-  const token = jwt.sign({ _id: user._id.toString() }, "gmkolivia");
+  const user = this
+  const token = jwt.sign({ _id: user._id.toString() }, 'gmkolivia')
 
-  user.tokens = user.tokens.concat({ token });
-  await user.save();
+  user.tokens = user.tokens.concat({ token })
+  await user.save()
 
-  return token;
-};
+  return token
+}
+
+userSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'owner'
+})
+
+userSchema.methods.toJSON = function() {
+  const user = this
+  const userObject = user.toObject()
+
+  delete userObject.password
+  delete userObject.tokens
+
+  return userObject
+}
 
 // accessible on the User model
 userSchema.statics.findByCredentials = async (email, password) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email })
 
   if (!user) {
-    throw new Error("Unable to login");
+    throw new Error('Unable to login')
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(password, user.password)
 
   if (!isMatch) {
-    throw new Error("Unable to login");
+    throw new Error('Unable to login')
   }
 
-  return user;
-};
+  return user
+}
 
-userSchema.pre("save", async function(next) {
-  const user = this;
+// middleware to hash the plain text pwd before saving
+userSchema.pre('save', async function(next) {
+  const user = this
 
-  if (user.isModified("password")) {
-    user.password = await bcrypt.hash(user.password, 8);
+  if (user.isModified('password')) {
+    user.password = await bcrypt.hash(user.password, 8)
   }
 
-  next();
-});
+  next()
+})
 
-const User = mongoose.model("User", userSchema);
+// middleware to delete user tasks when user is removed
+userSchema.pre('remove', async function(next) {
+  const user = this
+  await Task.deleteMany({ owner: user._id })
+  next()
+})
 
-module.exports = User;
+const User = mongoose.model('User', userSchema)
+
+module.exports = User
