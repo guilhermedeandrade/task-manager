@@ -5,50 +5,55 @@ const jwt = require('jsonwebtoken')
 
 const Task = require('./task')
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    validate: value => {
-      if (!validator.isEmail(value)) {
-        throw new Error('Email is invalid')
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      validate: value => {
+        if (!validator.isEmail(value)) {
+          throw new Error('Email is invalid')
+        }
       }
-    }
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: 7,
-    trim: true,
-    validate: value => {
-      if (value.toLowerCase().includes('password')) {
-        throw new Error("Passwords cannot contain the word 'password'")
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: 7,
+      trim: true,
+      validate: value => {
+        if (value.toLowerCase().includes('password')) {
+          throw new Error("Passwords cannot contain the word 'password'")
+        }
       }
-    }
-  },
-  age: {
-    type: Number,
-    validate: value => {
-      if (value < 0) {
-        throw new Error('Age must be a positive number')
+    },
+    age: {
+      type: Number,
+      validate: value => {
+        if (value < 0) {
+          throw new Error('Age must be a positive number')
+        }
       }
-    }
-  },
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true
+    },
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true
+        }
       }
-    }
-  ]
-})
+    ]
+  },
+  {
+    timestamps: true
+  }
+)
 
 // accessible on the User instances
 userSchema.methods.generateAuthToken = async function() {

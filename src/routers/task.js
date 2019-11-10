@@ -29,9 +29,35 @@ router.get('/tasks/:id', auth, async (req, res) => {
   }
 })
 
+// GET /tasks?completed=true
+// GET /tasks?limit=10&skip=20
+// GET /tasks?sortBy=createdAt:asc
 router.get('/tasks', auth, async (req, res) => {
+  const match = req => {
+    const owner = req.user._id
+    const completed = req.query.completed === 'true'
+
+    return req.query.completed ? { owner, completed } : { owner }
+  }
+
+  const sort = (sortBy => {
+    if (sortBy) {
+      const [field, order] = sortBy.split(':')
+      return { [field]: order }
+    }
+
+    return {}
+  })(req.query.sortBy)
+
+  const limit = parseInt(req.query.limit)
+  const skip = parseInt(req.query.skip)
+
   try {
-    const tasks = await Task.find({ owner: req.user._id })
+    const tasks = await Task.find(match(req))
+      .sort(sort)
+      .limit(limit)
+      .skip(skip)
+
     res.send(tasks)
   } catch (err) {
     res.status(500).send(err)
