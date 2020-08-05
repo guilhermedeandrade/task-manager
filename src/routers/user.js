@@ -4,6 +4,7 @@ const sharp = require('sharp')
 
 const User = require('../models/user')
 const auth = require('../middleware/auth')
+const { sendWelcomeEmail, sendCancellationEmail } = require('../emails/account')
 
 const router = new express.Router()
 
@@ -11,7 +12,7 @@ const upload = multer({
   limits: {
     fileSize: 1000000,
   },
-  fileFilter(req, file, cb) {
+  fileFilter(_req, file, cb) {
     const regex = /\.(jpg|jpeg|png)$/
 
     if (!regex.test(file.originalname)) {
@@ -27,6 +28,9 @@ router.post('/users', async (req, res) => {
 
   try {
     await user.save()
+
+    sendWelcomeEmail(user.email, user.name)
+
     const token = await user.generateAuthToken()
     res.status(201).send({ user, token })
   } catch (err) {
@@ -62,6 +66,11 @@ router.patch('/users/me', auth, async (req, res) => {
 router.delete('/users/me', auth, async (req, res) => {
   try {
     await req.user.remove()
+
+    const { email, name } = req.user
+
+    sendCancellationEmail(email, name)
+
     res.send(req.user)
   } catch (err) {
     res.status(500).send(err)
