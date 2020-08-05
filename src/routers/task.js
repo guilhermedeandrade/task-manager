@@ -53,10 +53,7 @@ router.get('/tasks', auth, async (req, res) => {
   const skip = parseInt(req.query.skip)
 
   try {
-    const tasks = await Task.find(match(req))
-      .sort(sort)
-      .limit(limit)
-      .skip(skip)
+    const tasks = await Task.find(match(req)).sort(sort).limit(limit).skip(skip)
 
     res.send(tasks)
   } catch (err) {
@@ -96,7 +93,7 @@ router.delete('/tasks/:id', auth, async (req, res) => {
   try {
     const task = await Task.findOneAndDelete({
       _id: req.params.id,
-      owner: req.user._id
+      owner: req.user._id,
     })
 
     if (!task) {

@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     email: {
       type: String,
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
         if (!validator.isEmail(value)) {
           throw new Error('Email is invalid')
         }
-      }
+      },
     },
     password: {
       type: String,
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
         if (value.toLowerCase().includes('password')) {
           throw new Error("Passwords cannot contain the word 'password'")
         }
-      }
+      },
     },
     age: {
       type: Number,
@@ -39,27 +39,27 @@ const userSchema = new mongoose.Schema(
         if (value < 0) {
           throw new Error('Age must be a positive number')
         }
-      }
+      },
     },
     tokens: [
       {
         token: {
           type: String,
-          required: true
-        }
-      }
+          required: true,
+        },
+      },
     ],
     avatar: {
-      type: Buffer
-    }
+      type: Buffer,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 )
 
 // accessible on the User instances
-userSchema.methods.generateAuthToken = async function() {
+userSchema.methods.generateAuthToken = async function () {
   const user = this
   const token = jwt.sign({ _id: user._id.toString() }, 'gmkolivia')
 
@@ -72,10 +72,10 @@ userSchema.methods.generateAuthToken = async function() {
 userSchema.virtual('tasks', {
   ref: 'Task',
   localField: '_id',
-  foreignField: 'owner'
+  foreignField: 'owner',
 })
 
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
   const user = this
   const userObject = user.toObject()
 
@@ -104,7 +104,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
 }
 
 // middleware to hash the plain text pwd before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   const user = this
 
   if (user.isModified('password')) {
@@ -115,7 +115,7 @@ userSchema.pre('save', async function(next) {
 })
 
 // middleware to delete user tasks when user is removed
-userSchema.pre('remove', async function(next) {
+userSchema.pre('remove', async function (next) {
   const user = this
   await Task.deleteMany({ owner: user._id })
   next()

@@ -9,7 +9,7 @@ const router = new express.Router()
 
 const upload = multer({
   limits: {
-    fileSize: 1000000
+    fileSize: 1000000,
   },
   fileFilter(req, file, cb) {
     const regex = /\.(jpg|jpeg|png)$/
@@ -19,7 +19,7 @@ const upload = multer({
     }
 
     cb(undefined, true)
-  }
+  },
 })
 
 router.post('/users', async (req, res) => {
