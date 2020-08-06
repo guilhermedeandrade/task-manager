@@ -6,8 +6,12 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "env-cmd -e development nodemon src/index.js",
-    "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
+    "test": "env-cmd -e test jest --watch --runInBand",
+    "lint": "eslint 'src/**/*.js' --quiet --fix",
     "format": "prettier --write 'src/**/*.js'"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.2.2",
@@ -25,7 +29,9 @@
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.2.2",
     "nodemon": "^1.19.4",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "supertest": "^4.0.2"
   }
 }
